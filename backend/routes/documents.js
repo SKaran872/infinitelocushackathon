@@ -52,7 +52,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
     // Check permissions
     if (
       document.owner.toString() !== req.user.id &&
-      !document.sharedWith.includes(req.user.id)
+      !document.sharedWith.some(id => id.toString() === req.user.id)
     ) {
       return res.status(401).json({ msg: "User not authorized" });
     }
@@ -81,7 +81,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
     // Ensure authorized
     if (
       document.owner.toString() !== req.user.id &&
-      !document.sharedWith.includes(req.user.id)
+      !document.sharedWith.some(id => id.toString() === req.user.id)
     ) {
       return res.status(401).json({ msg: "Not authorized" });
     }
@@ -161,7 +161,7 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
     }
 
     // Check if already shared
-    if (document.sharedWith.includes(userToShare._id)) {
+    if (document.sharedWith.some(id => id.toString() === userToShare._id.toString())) {
       return res.status(400).json({ msg: "Document already shared with this user" });
     }
 
