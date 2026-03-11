@@ -3,6 +3,6 @@
   "outputDirectory": "client/dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/client/dist/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
