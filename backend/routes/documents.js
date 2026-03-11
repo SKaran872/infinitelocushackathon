@@ -170,6 +170,12 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
 
     // Push Notification Message
     const sender = await User.findById(req.user.id);
+    
+    // Safely initialize for legacy users in the database
+    if (!userToShare.messages) {
+      userToShare.messages = [];
+    }
+
     userToShare.messages.push({
       senderName: sender.username,
       documentId: document._id,
