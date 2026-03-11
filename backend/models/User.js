@@ -22,6 +22,16 @@ const UserSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    messages: [
+      {
+        senderName: String,
+        documentId: mongoose.Schema.Types.ObjectId,
+        documentTitle: String,
+        content: String,
+        isRead: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
   },
   { timestamps: true }
 );

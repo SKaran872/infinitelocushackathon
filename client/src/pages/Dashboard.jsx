@@ -1,7 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { FileText, Plus, X } from "lucide-react";
+import { FileText, Plus, X, Bell } from "lucide-react";
 
 export default function Dashboard() {
   const { user, logout, api } = useContext(AuthContext);
@@ -13,6 +13,12 @@ export default function Dashboard() {
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  // Messages State
+  const [messages, setMessages] = useState([]);
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const messagesRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -34,10 +40,35 @@ export default function Dashboard() {
       }
     };
 
+    const fetchMessages = async () => {
+      try {
+        const res = await api.get("/auth/messages");
+        if (isMounted) {
+          setMessages(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch messages", err);
+      } finally {
+        if (isMounted) {
+          setMessagesLoading(false);
+        }
+      }
+    };
+
     fetchDocuments();
+    fetchMessages();
+
+    // Close dropdown on outside click
+    const handleClickOutside = (event) => {
+      if (messagesRef.current && !messagesRef.current.contains(event.target)) {
+        setIsMessagesOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
       isMounted = false; 
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [api]);
 
@@ -74,6 +105,23 @@ export default function Dashboard() {
       console.error(err);
     }
   };
+
+  const handleMessageClick = async (message) => {
+    setIsMessagesOpen(false);
+    if (!message.isRead) {
+      try {
+        await api.put(`/auth/messages/${message._id}/read`);
+        setMessages((prev) => 
+          prev.map((m) => m._id === message._id ? { ...m, isRead: true } : m)
+        );
+      } catch (err) {
+        console.error("Error marking message specifically as read", err);
+      }
+    }
+    navigate(`/documents/${message.documentId}`);
+  };
+
+  const unreadCount = messages.filter((m) => !m.isRead).length;
 
   if (loading) {
     return (
@@ -158,12 +206,78 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-sm text-gray-500">Welcome back, {user?.username}</p>
           </div>
-          <button
-            onClick={logout}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-          >
-            Log out
-          </button>
+          <div className="flex items-center gap-4">
+            
+            {/* Messages Dropdown */}
+            <div className="relative" ref={messagesRef}>
+              <button
+                onClick={() => setIsMessagesOpen(!isMessagesOpen)}
+                className="relative p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <Bell className="h-6 w-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {isMessagesOpen && (
+                <div className="absolute right-0 mt-2 w-80 md:w-96 rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden divide-y divide-gray-100">
+                  <div className="px-4 py-3 bg-gray-50/80 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{unreadCount} New</span>
+                  </div>
+                  
+                  <div className="max-h-[28rem] overflow-y-auto custom-scrollbar">
+                    {messagesLoading ? (
+                      <div className="p-4 text-center text-sm text-gray-500">Loading messages...</div>
+                    ) : messages.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500 flex flex-col items-center">
+                        <Bell className="h-8 w-8 mb-2 opacity-20" />
+                        <p className="text-sm">You have no notifications</p>
+                      </div>
+                    ) : (
+                      messages.map((message) => (
+                        <button
+                          key={message._id}
+                          onClick={() => handleMessageClick(message)}
+                          className={`w-full text-left p-4 hover:bg-blue-50/50 transition-colors flex gap-3 ${
+                            !message.isRead ? "bg-blue-50/30" : "opacity-70"
+                          }`}
+                        >
+                          <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${!message.isRead ? "bg-blue-600" : "bg-transparent"}`}></div>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm text-gray-900 font-medium line-clamp-2 leading-snug">
+                              <span className="font-semibold text-blue-800">{message.senderName}</span>{" "}
+                              shared the document{" "}
+                              <span className="font-semibold">"{message.documentTitle || "Untitled"}"</span>{" "}
+                              with you.
+                            </p>
+                            <p className="text-xs text-gray-500 font-medium">
+                              {new Date(message.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <div className="bg-gray-50 px-4 py-2 border-t border-gray-100 text-center">
+                    <p className="text-xs text-gray-400">Notifications shown from past activity</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="h-6 w-px bg-gray-200"></div>
+
+            <button
+              onClick={logout}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              Log out
+            </button>
+          </div>
         </header>
 
         <main>

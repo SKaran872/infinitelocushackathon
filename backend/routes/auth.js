@@ -101,4 +101,47 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET api/auth/messages
+// @desc    Get user messages/notifications
+// @access  Private
+router.get("/messages", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("messages");
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    // Sort messages by createdAt descending (newest first)
+    const sortedMessages = user.messages.sort((a, b) => b.createdAt - a.createdAt);
+    res.json(sortedMessages);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// @route   PUT api/auth/messages/:messageId/read
+// @desc    Mark a message as read
+// @access  Private
+router.put("/messages/:messageId/read", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const message = user.messages.id(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ msg: "Message not found" });
+    }
+
+    message.isRead = true;
+    await user.save();
+
+    res.json({ msg: "Message marked as read" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
 module.exports = router;

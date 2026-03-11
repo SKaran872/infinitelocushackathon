@@ -168,6 +168,16 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
     document.sharedWith.push(userToShare._id);
     await document.save();
 
+    // Push Notification Message
+    const sender = await User.findById(req.user.id);
+    userToShare.messages.push({
+      senderName: sender.username,
+      documentId: document._id,
+      documentTitle: document.title,
+      content: `${sender.username} has shared the document "${document.title}" with you.`
+    });
+    await userToShare.save();
+
     res.json({ msg: `Document shared with ${userToShare.username}`, user: { username: userToShare.username, email: userToShare.email } });
   } catch (err) {
     console.error(err.message);
