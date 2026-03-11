@@ -73,6 +73,3 @@ A full-stack, real-time document editing and collaboration platform built with t
 This project is configured for deployment on Vercel. 
 - The React frontend is bundled using Vite.
 - Static Single Page Application (SPA) routing is handled natively via the custom `vercel.json` configuration.
-
-## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! See the `CONTRIBUTING.md` file for details on how to participate.

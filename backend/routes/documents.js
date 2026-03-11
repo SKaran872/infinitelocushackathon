@@ -144,7 +144,7 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
     }
 
     // Only owner can share
-    if (document.owner.toString() !== req.user.id) {
+    if (!document.owner || document.owner.toString() !== req.user.id) {
       return res.status(401).json({ msg: "Only the document owner can share" });
     }
 
@@ -161,36 +161,48 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
     }
 
     // Check if already shared
-    if (document.sharedWith.some(id => id.toString() === userToShare._id.toString())) {
+    if (document.sharedWith && document.sharedWith.some(id => id && id.toString() === userToShare._id.toString())) {
       return res.status(400).json({ msg: "Document already shared with this user" });
     }
 
+    if (!document.sharedWith) {
+      document.sharedWith = [];
+    }
     document.sharedWith.push(userToShare._id);
     await document.save();
 
     // Push Notification Message
     const sender = await User.findById(req.user.id);
+    if (!sender) {
+       return res.status(404).json({ msg: "Action blocked: Sender user object not found." });
+    }
     
-    // Safely initialize for legacy users in the database
     if (!userToShare.messages) {
       userToShare.messages = [];
     }
 
-    userToShare.messages.push({
-      senderName: sender.username,
-      documentId: document._id,
-      documentTitle: document.title,
-      content: `${sender.username} has shared the document "${document.title}" with you.`
-    });
-    await userToShare.save();
+    // Attempt to push to messages array
+    try {
+      userToShare.messages.push({
+        senderName: sender.username,
+        documentId: document._id,
+        documentTitle: document.title || "Untitled Document",
+        content: `${sender.username} has shared the document "${document.title || "Untitled Document"}" with you.`
+      });
+      userToShare.markModified('messages');
+      await userToShare.save();
+    } catch (saveErr) {
+      console.error("User save error during share:", saveErr);
+      return res.status(500).json({ msg: `Failed saving notification: ${saveErr.message}` });
+    }
 
     res.json({ msg: `Document shared with ${userToShare.username}`, user: { username: userToShare.username, email: userToShare.email } });
   } catch (err) {
-    console.error(err.message);
+    console.error("Critical error in /share:", err);
     if (err.kind === "ObjectId") {
       return res.status(404).json({ msg: "Document not found" });
     }
-    res.status(500).send("Server Error");
+    res.status(500).json({ msg: `Server Error: ${err.message}` });
   }
 });
 
