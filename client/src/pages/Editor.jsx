@@ -211,7 +211,7 @@ export default function Editor() {
     setIsSharing(true);
     setShareStatus(null);
     try {
-      const res = await api.post(`/documents/${id}/share`, { email: shareEmail });
+      const res = await api.post(`/documents/${id}/share`, { username: shareEmail });
       setShareStatus({ type: "success", msg: res.data.msg });
       setShareEmail("");
     } catch (err) {
@@ -328,12 +328,12 @@ export default function Editor() {
             </div>
 
             <div className="border-t border-gray-100 pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Invite by Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Invite by Username</label>
               <form onSubmit={handleShare} className="flex gap-2">
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="colleague@example.com"
+                  placeholder="Enter their username"
                   value={shareEmail}
                   onChange={(e) => setShareEmail(e.target.value)}
                   className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
