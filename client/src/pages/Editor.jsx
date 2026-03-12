@@ -2,6 +2,7 @@ import { useEffect, useState, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import Quill from "quill";
+import axios from "axios";
 import "quill/dist/quill.snow.css";
 import { AuthContext } from "../context/AuthContext";
 import { ArrowLeft, Share2, X, Copy, Check } from "lucide-react";
@@ -212,26 +213,15 @@ export default function Editor() {
     setShareStatus(null);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
+      const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/documents/${id}/share`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({ username: shareEmail }),
-        }
+        { username: shareEmail },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      const data = await response.json();
-      if (!response.ok) {
-        setShareStatus({ type: "error", msg: data.msg || "Failed to share document" });
-        return;
-      }
-      setShareStatus({ type: "success", msg: data.msg });
+      setShareStatus({ type: "success", msg: res.data.msg });
       setShareEmail("");
     } catch (err) {
-      setShareStatus({ type: "error", msg: "Network error - please try again" });
+      setShareStatus({ type: "error", msg: err.response?.data?.msg || "Failed to share document" });
     } finally {
       setIsSharing(false);
     }
