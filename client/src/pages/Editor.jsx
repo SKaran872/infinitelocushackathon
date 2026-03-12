@@ -211,11 +211,27 @@ export default function Editor() {
     setIsSharing(true);
     setShareStatus(null);
     try {
-      const res = await api.post(`/documents/${id}/share`, { username: shareEmail });
-      setShareStatus({ type: "success", msg: res.data.msg });
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/documents/${id}/share`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ username: shareEmail }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        setShareStatus({ type: "error", msg: data.msg || "Failed to share document" });
+        return;
+      }
+      setShareStatus({ type: "success", msg: data.msg });
       setShareEmail("");
     } catch (err) {
-      setShareStatus({ type: "error", msg: err.response?.data?.msg || "Failed to share document" });
+      setShareStatus({ type: "error", msg: "Network error - please try again" });
     } finally {
       setIsSharing(false);
     }
