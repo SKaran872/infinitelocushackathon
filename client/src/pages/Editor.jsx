@@ -315,63 +315,22 @@ export default function Editor() {
           <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900">Share Document</h2>
-              <button
-                onClick={() => setIsShareOpen(false)}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-1 rounded transition-colors"
-              >
+              <button onClick={() => setIsShareOpen(false)} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-1 rounded transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-            {/* Copy Link */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Document Link</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={window.location.href}
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 bg-gray-50"
-                />
-                <button
-                  onClick={copyLink}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-              </div>
-               <p className="mt-1 text-xs text-amber-600">
-                  ⚠️ The link will only work for those who have been invited via the username below
-                </p>
-            </div>
-
-            <div className="border-t border-gray-100 pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Invite by Username</label>
-              <form onSubmit={handleShare} className="flex gap-2">
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter their username"
-                  value={shareEmail}
-                  onChange={(e) => setShareEmail(e.target.value)}
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button
-                  type="submit"
-                  disabled={isSharing}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50 transition-colors"
-                >
-                  {isSharing ? "Sharing..." : "Share"}
-                </button>
-              </form>
-              {shareStatus && (
-                <p className={`mt-3 text-sm font-medium ${
-                  shareStatus.type === "success" ? "text-green-600" : "text-red-600"
-                }`}>
-                  {shareStatus.msg}
-                </p>
-              )}
+            <p className="text-sm text-gray-500 mb-4">
+              Anyone with this link can view and edit this document.
+            </p>
+            <div className="flex gap-2">
+              <input type="text" readOnly value={window.location.href}
+                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 bg-gray-50"
+              />
+              <button onClick={copyLink}
+                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? "Copied!" : "Copy Link"}
+              </button>
             </div>
           </div>
         </div>
