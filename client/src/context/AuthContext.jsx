@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect , useMemo} from "react";
 import axios from "axios";
 
 export const AuthContext = createContext();
@@ -8,17 +8,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Axios instance
-  const api = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL}/api`,
-  });
-
-  api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
+   const api = useMemo(() => {
+    const instance = axios.create({
+      baseURL: `${import.meta.env.VITE_API_URL}/api`,
+    });
+    instance.interceptors.request.use((config) => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+    return instance;
+  }, []);
 
   useEffect(() => {
     const loadUser = async () => {
