@@ -49,14 +49,6 @@ router.get("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ msg: "Document not found" });
     }
 
-    // Check permissions
-    if (
-      document.owner.toString() !== req.user.id &&
-      !document.sharedWith.some(id => id.toString() === req.user.id)
-    ) {
-      return res.status(401).json({ msg: "User not authorized" });
-    }
-
     res.json(document);
   } catch (err) {
     console.error(err.message);
