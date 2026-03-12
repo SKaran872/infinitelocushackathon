@@ -130,10 +130,10 @@ const User = require("../models/User");
 // @desc    Share a document with another user by email
 // @access  Private (owner only)
 router.post("/:id/share", authMiddleware, async (req, res) => {
-  const { email } = req.body;
+  const { username  } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ msg: "Email is required" });
+   if (!username) {
+    return res.status(400).json({ msg: "Username is required" });
   }
 
   try {
@@ -149,10 +149,10 @@ router.post("/:id/share", authMiddleware, async (req, res) => {
     }
 
     // Find user by email
-    const userToShare = await User.findOne({ email: email.toLowerCase() });
-
+    const userToShare = await User.findOne({ username: username });
+    
     if (!userToShare) {
-      return res.status(404).json({ msg: "No user found with that email" });
+      return res.status(404).json({ msg: "No user found with that username" });
     }
 
     // Can't share with yourself
