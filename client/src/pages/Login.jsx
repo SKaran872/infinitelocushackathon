@@ -1,11 +1,13 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { LogIn } from "lucide-react";
 
 export default function Login() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();                          // 👈 add this
+  const from = location.state?.from?.pathname || "/";
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
@@ -16,7 +18,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await login(formData.email, formData.password);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.msg || "Login failed");
     }
