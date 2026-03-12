@@ -326,7 +326,7 @@ export default function Editor() {
                 </button>
               </div>
                <p className="mt-1 text-xs text-amber-600">
-                  ⚠️ Link sirf unhe kaam karega jinhe neeche email se invite kiya ho
+                  ⚠️ The link will only work for those who have been invited via the username below
                 </p>
             </div>
 
