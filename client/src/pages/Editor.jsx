@@ -325,6 +325,9 @@ export default function Editor() {
                   {copied ? "Copied!" : "Copy"}
                 </button>
               </div>
+               <p className="mt-1 text-xs text-amber-600">
+                  ⚠️ Link sirf unhe kaam karega jinhe neeche email se invite kiya ho
+                </p>
             </div>
 
             <div className="border-t border-gray-100 pt-4">
